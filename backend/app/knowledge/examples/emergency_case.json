@@ -1,0 +1,267 @@
+{
+  "name": "Emergency management system monitoring architecture",
+  "description": "Multi-layer (edge, fog, cloud) monitoring architecture for an older adult who lives alone: home environment and heart rate monitoring with a daily health summary in the cloud. Based on the illustrative case of Erazo-Garzon et al. (IEEE Access, 2022).",
+  "author": "Asistente Monitor-IoT",
+  "containsIoTSystem": [
+    {
+      "key": "emergency", "name": "Emergency", "domain": "Healthcare",
+      "description": "Emergency management system for older adults who live alone.",
+      "containsIoTSubSystem": [
+        {
+          "key": "envControl", "name": "EnvironmentalControl",
+          "description": "Monitors the temperature, carbon monoxide and smoke of the house.",
+          "isComposedOf": ["house", "bedroom", "kitchen", "fogNode", "raspberry", "tempSensor", "coSmokeSensor", "localDb", "express", "lan", "proximity"]
+        },
+        {
+          "key": "healthCare", "name": "HealthCare",
+          "description": "Monitors the heart rate of the older adult and summarizes it daily in the cloud.",
+          "isComposedOf": ["olderAdult", "smartWatch", "heartRateSensor", "fogNode", "localDb", "express", "mosquitto", "googleCloud", "cloudDb", "lan", "internet"]
+        }
+      ]
+    }
+  ],
+  "containsMeasurementUnit": [
+    {"key": "celsius", "name": "DegreeCelsius"},
+    {"key": "ppm", "name": "PartsPerMillion"},
+    {"key": "bpm", "name": "BeatsPerMinute"}
+  ],
+  "containsEntityCategory": [
+    {
+      "key": "roomCat", "name": "Room", "description": "Rooms of a house whose environment is monitored.",
+      "groups": ["bedroom", "kitchen"],
+      "hasPropertyTemplate": [
+        {"key": "tplTemperature", "name": "temperature", "definition": "Ambient temperature of the room.", "propertyType": "Telemetry", "dataType": "Float", "isMeasured": "celsius"},
+        {"key": "tplCO", "name": "carbonMonoxide", "definition": "Carbon monoxide concentration in the air.", "propertyType": "Telemetry", "dataType": "Float", "isMeasured": "ppm"},
+        {"key": "tplSmoke", "name": "smoke", "definition": "Smoke concentration in the air.", "propertyType": "Telemetry", "dataType": "Float", "isMeasured": "ppm"}
+      ]
+    },
+    {
+      "key": "personCat", "name": "Person", "description": "People whose vital signs are monitored.",
+      "groups": ["olderAdult"],
+      "hasPropertyTemplate": [
+        {"key": "tplHeartRate", "name": "heartRate", "definition": "Heart rate of the person.", "propertyType": "Telemetry", "dataType": "Integer", "isMeasured": "bpm"}
+      ]
+    }
+  ],
+  "containsEntity": [
+    {
+      "eClass": "PhysicalEntity", "key": "house", "name": "House",
+      "description": "House where the older adult lives.",
+      "containsComputingNode": [
+        {
+          "eClass": "FogNode", "key": "fogNode", "name": "HPProliantMicroserver",
+          "description": "Local server of the house that stores and processes the raw sensor data.",
+          "deploymentModel": "Private", "platform": "Node.js, PostgreSQL, Mosquitto",
+          "containsResource": [
+            {
+              "eClass": "DataBase", "key": "localDb", "name": "PostgreSQLLocal",
+              "description": "Local database with the raw data coming from the sensors.",
+              "uri": "postgresql://example_user:example_password@192.168.1.11:5432/local",
+              "user": "example_user", "password": "example_password", "usesProtocol": "pgLan",
+              "containsDataTable": [
+                {
+                  "key": "tblHouseEnv", "name": "HouseEnvironment", "persistenceType": "Permanent",
+                  "composedOfDataColumn": [
+                    {"key": "colTemperature", "name": "temperature", "dataType": "Float"},
+                    {"key": "colCO", "name": "carbonMonoxide", "dataType": "Float"},
+                    {"key": "colSmoke", "name": "smoke", "dataType": "Float"},
+                    {"name": "dateTime", "dataColumnType": "MetaData", "dataType": "Date", "formulaExpression": "return new Date().toISOString();"}
+                  ]
+                },
+                {
+                  "key": "tblHealth", "name": "Health", "persistenceType": "Permanent",
+                  "composedOfDataColumn": [
+                    {"key": "colHeartRate", "name": "heartRate", "dataType": "Integer"},
+                    {"name": "dateTime", "dataColumnType": "MetaData", "dataType": "Date", "formulaExpression": "return new Date().toISOString();"}
+                  ]
+                }
+              ]
+            },
+            {
+              "eClass": "Middleware", "key": "express", "name": "Express",
+              "description": "Application server that exposes the REST services.", "usesProtocol": ["httpLan"],
+              "containsService": [
+                {
+                  "key": "svcSaveEnv", "name": "saveEnvironmentData", "endPoint": "/environment", "method": "POST",
+                  "containsParameter": [
+                    {"ordinal": 1, "name": "temperature", "dataType": "Float", "receives": "tplTemperature"},
+                    {"ordinal": 2, "name": "carbonMonoxide", "dataType": "Float", "receives": "tplCO"},
+                    {"ordinal": 3, "name": "smoke", "dataType": "Float", "receives": "tplSmoke"}
+                  ]
+                },
+                {
+                  "key": "svcSaveHealth", "name": "saveHealthData", "endPoint": "/health", "method": "POST",
+                  "containsParameter": [
+                    {"ordinal": 1, "name": "heartRate", "dataType": "Integer", "receives": "tplHeartRate"}
+                  ]
+                },
+                {
+                  "key": "svcSummary", "name": "saveHealthSummaryDaily", "endPoint": "/health-summary", "method": "POST"
+                }
+              ]
+            },
+            {
+              "eClass": "Broker", "key": "mosquitto", "name": "Mosquitto",
+              "description": "MQTT message broker.", "usesProtocol": ["mqttLan"],
+              "containsTopic": [
+                {"key": "topicHealth", "name": "healthData", "incluyes": ["propHeartRate"]}
+              ]
+            },
+            {"eClass": "NetworkInterface", "name": "WiFiAdapter", "communicationTechnology": "Wifi", "networkAddress": "192.168.1.11", "connects": "lan"},
+            {"eClass": "NetworkInterface", "name": "EthernetAdapter", "communicationTechnology": "Ethernet", "connects": "internet"}
+          ]
+        },
+        {
+          "eClass": "IoTGateway", "key": "raspberry", "name": "RaspberryPi3", "gatewayType": "Microcontroller",
+          "description": "Gateway that reads the room sensors through Bluetooth.",
+          "controls": ["tempSensor", "coSmokeSensor"],
+          "containsResource": [
+            {
+              "eClass": "API", "key": "apiTemp", "name": "getTemperature",
+              "containsReturnVariable": [{"ordinal": 1, "name": "temperature", "dataType": "Float", "returns": "tplTemperature"}]
+            },
+            {
+              "eClass": "API", "key": "apiCOSmoke", "name": "getCOAndSmoke",
+              "containsReturnVariable": [
+                {"ordinal": 1, "name": "carbonMonoxide", "dataType": "Float", "returns": "tplCO"},
+                {"ordinal": 2, "name": "smoke", "dataType": "Float", "returns": "tplSmoke"}
+              ]
+            },
+            {"eClass": "Application", "key": "envController", "name": "environmentController", "type": "Embedded"},
+            {"eClass": "NetworkInterface", "name": "BluetoothAdapter", "communicationTechnology": "Bluetooth", "connects": "proximity"},
+            {"eClass": "NetworkInterface", "name": "WiFiAdapter", "communicationTechnology": "Wifi", "connects": "lan"}
+          ]
+        }
+      ],
+      "containsSubPhysicalEntity": [
+        {
+          "key": "bedroom", "name": "Bedroom",
+          "hasProperty": [{"key": "propTemperature", "name": "temperature", "isBasedOn": "tplTemperature"}],
+          "containsComputingNode": [
+            {"eClass": "Sensor", "key": "tempSensor", "name": "TemperatureSensor", "description": "Ambient temperature sensor."}
+          ]
+        },
+        {
+          "key": "kitchen", "name": "Kitchen",
+          "hasProperty": [
+            {"key": "propCO", "name": "carbonMonoxide", "isBasedOn": "tplCO"},
+            {"key": "propSmoke", "name": "smoke", "isBasedOn": "tplSmoke"}
+          ],
+          "containsComputingNode": [
+            {"eClass": "Sensor", "key": "coSmokeSensor", "name": "COSmokeSensor", "description": "Carbon monoxide and smoke sensor."}
+          ]
+        },
+        {
+          "eClass": "HumanUser", "key": "olderAdult", "name": "OlderAdult",
+          "description": "Older adult who lives alone and wears a smartwatch.",
+          "interactsUsing": "healthMonitor",
+          "hasProperty": [{"key": "propHeartRate", "name": "heartRate", "isBasedOn": "tplHeartRate"}],
+          "containsComputingNode": [
+            {
+              "eClass": "IoTGateway", "key": "smartWatch", "name": "SmartWatch", "gatewayType": "SmartWatch",
+              "controls": ["heartRateSensor"],
+              "containsResource": [
+                {
+                  "eClass": "API", "key": "apiHeartRate", "name": "getHeartRate",
+                  "containsReturnVariable": [{"ordinal": 1, "name": "heartRate", "dataType": "Integer", "returns": "tplHeartRate"}]
+                },
+                {"eClass": "Application", "key": "healthMonitor", "name": "healthMonitor", "type": "Mobile"},
+                {"eClass": "NetworkInterface", "name": "WiFiAdapter", "communicationTechnology": "Wifi", "connects": "lan"}
+              ]
+            },
+            {"eClass": "Sensor", "key": "heartRateSensor", "name": "HeartRateSensor", "description": "Optical heart rate sensor of the smartwatch."}
+          ]
+        }
+      ]
+    },
+    {
+      "eClass": "CloudNode", "key": "googleCloud", "name": "GoogleCloud",
+      "description": "Cloud node that stores the daily health summary.", "serviceModel": "PaaS", "platform": "PostgreSQL",
+      "containsResource": [
+        {
+          "eClass": "DataBase", "key": "cloudDb", "name": "PostgreSQLCloud",
+          "uri": "postgresql://example_user:example_password@cloud.example.com:5432/cloud",
+          "user": "example_user", "password": "example_password", "usesProtocol": "pgInternet",
+          "containsDataTable": [
+            {
+              "key": "tblSummary", "name": "HealthSummaryDaily", "persistenceType": "Permanent",
+              "composedOfDataColumn": [
+                {"key": "colAvgHR", "name": "averageHeartRate", "dataType": "Float"},
+                {"key": "colMaxHR", "name": "maximumHeartRate", "dataType": "Integer"},
+                {"key": "colMinHR", "name": "minimumHeartRate", "dataType": "Integer"},
+                {"name": "date", "dataColumnType": "MetaData", "dataType": "Date", "formulaExpression": "return new Date().toISOString();"}
+              ]
+            }
+          ]
+        },
+        {"eClass": "NetworkInterface", "name": "EthernetAdapter", "communicationTechnology": "Ethernet", "connects": "internet"}
+      ]
+    },
+    {
+      "eClass": "Network", "key": "proximity", "name": "Proximity",
+      "description": "Bluetooth proximity network between the sensors and the gateway."
+    },
+    {
+      "eClass": "Network", "key": "lan", "name": "LAN", "description": "Wi-Fi local network of the house.",
+      "containsProtocol": [
+        {"key": "httpLan", "name": "HTTP", "port": 3000},
+        {"key": "mqttLan", "name": "MQTT", "port": 1883},
+        {"key": "pgLan", "name": "PostgreSQL", "port": 5432}
+      ]
+    },
+    {
+      "eClass": "Network", "key": "internet", "name": "Internet", "description": "Connection between the house and the cloud.",
+      "containsProtocol": [
+        {"key": "httpInternet", "name": "HTTPS", "port": 443},
+        {"key": "pgInternet", "name": "PostgreSQL", "port": 5432}
+      ]
+    }
+  ],
+  "containsDataFlow": [
+    {
+      "key": "flowEnv", "description": "House environment data collection",
+      "dataFlowType": "DataCollectionFlow", "communicationType": "Synchronous",
+      "flowExecutionTimeInterval": 10, "unitOfTime": "Minute",
+      "containsDataMappingRule": [
+        {"eClass": "PropertyToDataColumn", "relatesSpecificProperty": "propTemperature", "relatesColumn": "colTemperature"},
+        {"eClass": "PropertyToDataColumn", "relatesSpecificProperty": "propCO", "relatesColumn": "colCO"},
+        {"eClass": "PropertyToDataColumn", "relatesSpecificProperty": "propSmoke", "relatesColumn": "colSmoke"}
+      ]
+    },
+    {
+      "key": "flowHR", "description": "Heart rate data collection",
+      "dataFlowType": "DataCollectionFlow", "communicationType": "Asynchronous",
+      "flowExecutionTimeInterval": 30, "unitOfTime": "Minute",
+      "containsDataMappingRule": [
+        {"eClass": "PropertyToDataColumn", "relatesSpecificProperty": "propHeartRate", "relatesColumn": "colHeartRate"}
+      ]
+    },
+    {
+      "key": "flowSummary", "description": "Daily health summary aggregation",
+      "dataFlowType": "DataAggregationFlow", "communicationType": "Synchronous",
+      "flowExecutionTimeInterval": 1, "unitOfTime": "Day",
+      "containsDataMappingRule": [
+        {"eClass": "DataColumnToDataColumn", "aggregationOperation": "Mean", "relatesSourceColumn": "colHeartRate", "relatesDestinationColumn": "colAvgHR"},
+        {"eClass": "DataColumnToDataColumn", "aggregationOperation": "Maximum", "relatesSourceColumn": "colHeartRate", "relatesDestinationColumn": "colMaxHR"},
+        {"eClass": "DataColumnToDataColumn", "aggregationOperation": "Minimum", "relatesSourceColumn": "colHeartRate", "relatesDestinationColumn": "colMinHR"}
+      ]
+    }
+  ],
+  "containsLink": [
+    {"eClass": "LinkAPIToIoTDevice", "key": "l1", "supports": "flowEnv", "linksIoTDevice": "tempSensor", "linksAPI": "apiTemp"},
+    {"eClass": "LinkAPIToIoTDevice", "key": "l2", "supports": "flowEnv", "linksIoTDevice": "coSmokeSensor", "linksAPI": "apiCOSmoke"},
+    {"eClass": "LinkAppToAPI", "key": "l3", "supports": "flowEnv", "previousLink": "l1", "linksAPI": "apiTemp", "linksApp": "envController"},
+    {"eClass": "LinkAppToAPI", "key": "l4", "supports": "flowEnv", "previousLink": "l2", "linksAPI": "apiCOSmoke", "linksApp": "envController"},
+    {"eClass": "LinkAppToService", "key": "l5", "supports": "flowEnv", "previousLink": ["l3", "l4"], "linksApp": "envController", "linksService": "svcSaveEnv"},
+    {"eClass": "LinkServiceToDataTable", "key": "l6", "supports": "flowEnv", "previousLink": "l5", "linkService": "svcSaveEnv", "linksDataTable": "tblHouseEnv", "type": "Insert"},
+
+    {"eClass": "LinkAPIToIoTDevice", "key": "l7", "supports": "flowHR", "linksIoTDevice": "heartRateSensor", "linksAPI": "apiHeartRate"},
+    {"eClass": "LinkAppToAPI", "key": "l8", "supports": "flowHR", "previousLink": "l7", "linksAPI": "apiHeartRate", "linksApp": "healthMonitor"},
+    {"eClass": "LinkAppToTopic", "key": "l9", "supports": "flowHR", "previousLink": "l8", "linksApplication": "healthMonitor", "linksTopic": "topicHealth", "type": "Push"},
+    {"eClass": "LinkServiceToTopic", "key": "l10", "supports": "flowHR", "previousLink": "l9", "linksService": "svcSaveHealth", "linksTopic": "topicHealth", "type": "Pull"},
+    {"eClass": "LinkServiceToDataTable", "key": "l11", "supports": "flowHR", "previousLink": "l10", "linkService": "svcSaveHealth", "linksDataTable": "tblHealth", "type": "Insert"},
+
+    {"eClass": "LinkServiceToDataTable", "key": "l12", "supports": "flowSummary", "linkService": "svcSummary", "linksDataTable": "tblHealth", "type": "Select"},
+    {"eClass": "LinkServiceToDataTable", "key": "l13", "supports": "flowSummary", "previousLink": "l12", "linkService": "svcSummary", "linksDataTable": "tblSummary", "type": "Insert"}
+  ]
+}

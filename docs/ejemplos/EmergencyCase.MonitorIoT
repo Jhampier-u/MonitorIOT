@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MonitorIoT:MonitoringArchitectureModel xmlns:MonitorIoT="http://www.uazuay.edu.ec/MonitorIoT" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmi:version="2.0" name="Emergency management system monitoring architecture" description="Multi-layer (edge, fog, cloud) monitoring architecture for an older adult who lives alone: home environment and heart rate monitoring with a daily health summary in the cloud. Based on the illustrative case of Erazo-Garzon et al. (IEEE Access, 2022)." author="Asistente Monitor-IoT">
+  <containsEntity xsi:type="MonitorIoT:PhysicalEntity" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.0" id="1" name="House" description="House where the older adult lives.">
+    <containsComputingNode xsi:type="MonitorIoT:FogNode" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.0 //@containsIoTSystem.0/@containsIoTSubSystem.1" id="2" name="HPProliantMicroserver" description="Local server of the house that stores and processes the raw sensor data." deploymentModel="Private" platform="Node.js, PostgreSQL, Mosquitto">
+      <containsResource xsi:type="MonitorIoT:DataBase" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.0 //@containsIoTSystem.0/@containsIoTSubSystem.1" id="3" name="PostgreSQLLocal" description="Local database with the raw data coming from the sensors." uri="postgresql://example_user:example_password@192.168.1.11:5432/local" user="example_user" password="example_password" usesProtocol="//@containsEntity.3/@containsProtocol.2">
+        <containsDataTable name="HouseEnvironment" persistenceType="Permanent" hasLinkServiceToDatable="//@containsLink.5">
+          <composedOfDataColumn name="temperature" hasRulePropertyToDataColumn="//@containsDataFlow.0/@containsDataMappingRule.0" dataType="Float" />
+          <composedOfDataColumn name="carbonMonoxide" hasRulePropertyToDataColumn="//@containsDataFlow.0/@containsDataMappingRule.1" dataType="Float" />
+          <composedOfDataColumn name="smoke" hasRulePropertyToDataColumn="//@containsDataFlow.0/@containsDataMappingRule.2" dataType="Float" />
+          <composedOfDataColumn name="dateTime" dataColumnType="MetaData" dataType="Date" formulaExpression="return new Date().toISOString();" />
+        </containsDataTable>
+        <containsDataTable name="Health" persistenceType="Permanent" hasLinkServiceToDatable="//@containsLink.10 //@containsLink.11">
+          <composedOfDataColumn name="heartRate" hasRulePropertyToDataColumn="//@containsDataFlow.1/@containsDataMappingRule.0" hasRuleAsSource="//@containsDataFlow.2/@containsDataMappingRule.0 //@containsDataFlow.2/@containsDataMappingRule.1 //@containsDataFlow.2/@containsDataMappingRule.2" dataType="Integer" />
+          <composedOfDataColumn name="dateTime" dataColumnType="MetaData" dataType="Date" formulaExpression="return new Date().toISOString();" />
+        </containsDataTable>
+      </containsResource>
+      <containsResource xsi:type="MonitorIoT:Middleware" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.0 //@containsIoTSystem.0/@containsIoTSubSystem.1" id="4" name="Express" description="Application server that exposes the REST services." usesProtocol="//@containsEntity.3/@containsProtocol.0">
+        <containsService id="5" name="saveEnvironmentData" endPoint="/environment" method="POST" hasLinkAppToService="//@containsLink.4" hasLinkServiceToDataTable="//@containsLink.5">
+          <containsParameter ordinal="1" name="temperature" dataType="Float" receives="//@containsEntityCategory.0/@hasPropertyTemplate.0" />
+          <containsParameter ordinal="2" name="carbonMonoxide" dataType="Float" receives="//@containsEntityCategory.0/@hasPropertyTemplate.1" />
+          <containsParameter ordinal="3" name="smoke" dataType="Float" receives="//@containsEntityCategory.0/@hasPropertyTemplate.2" />
+        </containsService>
+        <containsService id="6" name="saveHealthData" endPoint="/health" method="POST" hasLinkServiceToDataTable="//@containsLink.10" hasLinkServiceToTopic="//@containsLink.9">
+          <containsParameter ordinal="1" name="heartRate" dataType="Integer" receives="//@containsEntityCategory.1/@hasPropertyTemplate.0" />
+        </containsService>
+        <containsService id="7" name="saveHealthSummaryDaily" endPoint="/health-summary" method="POST" hasLinkServiceToDataTable="//@containsLink.11 //@containsLink.12" />
+      </containsResource>
+      <containsResource xsi:type="MonitorIoT:Broker" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.1" id="8" name="Mosquitto" description="MQTT message broker." usesProtocol="//@containsEntity.3/@containsProtocol.1">
+        <containsTopic incluyes="//@containsEntity.0/@containsSubPhysicalEntity.2/@hasProperty.0" id="9" name="healthData" hasLinkServiceToTopic="//@containsLink.9" hasLinkAppToTopic="//@containsLink.8" />
+      </containsResource>
+      <containsResource xsi:type="MonitorIoT:NetworkInterface" id="10" name="WiFiAdapter" connects="//@containsEntity.3" networkAddress="192.168.1.11" />
+      <containsResource xsi:type="MonitorIoT:NetworkInterface" id="11" name="EthernetAdapter" connects="//@containsEntity.4" communicationTechnology="Ethernet" />
+    </containsComputingNode>
+    <containsComputingNode xsi:type="MonitorIoT:IoTGateway" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.0" id="12" name="RaspberryPi3" description="Gateway that reads the room sensors through Bluetooth." controls="//@containsEntity.0/@containsSubPhysicalEntity.0/@containsComputingNode.0 //@containsEntity.0/@containsSubPhysicalEntity.1/@containsComputingNode.0" gatewayType="Microcontroller">
+      <containsResource xsi:type="MonitorIoT:API" id="13" name="getTemperature" hasLinkAppToAPI="//@containsLink.2" hasLinkAPIToIoTDevice="//@containsLink.0">
+        <containsReturnVariable ordinal="1" name="temperature" dataType="Float" returns="//@containsEntityCategory.0/@hasPropertyTemplate.0" />
+      </containsResource>
+      <containsResource xsi:type="MonitorIoT:API" id="14" name="getCOAndSmoke" hasLinkAppToAPI="//@containsLink.3" hasLinkAPIToIoTDevice="//@containsLink.1">
+        <containsReturnVariable ordinal="1" name="carbonMonoxide" dataType="Float" returns="//@containsEntityCategory.0/@hasPropertyTemplate.1" />
+        <containsReturnVariable ordinal="2" name="smoke" dataType="Float" returns="//@containsEntityCategory.0/@hasPropertyTemplate.2" />
+      </containsResource>
+      <containsResource xsi:type="MonitorIoT:Application" id="15" name="environmentController" type="Embedded" hasLinkAppToService="//@containsLink.4" hasLinkAppToAPI="//@containsLink.2 //@containsLink.3" />
+      <containsResource xsi:type="MonitorIoT:NetworkInterface" id="16" name="BluetoothAdapter" connects="//@containsEntity.2" communicationTechnology="Bluetooth" />
+      <containsResource xsi:type="MonitorIoT:NetworkInterface" id="17" name="WiFiAdapter" connects="//@containsEntity.3" />
+    </containsComputingNode>
+    <containsSubPhysicalEntity isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.0" id="18" name="Bedroom" isGrouped="//@containsEntityCategory.0">
+      <hasProperty id="19" isBasedOn="//@containsEntityCategory.0/@hasPropertyTemplate.0" hasRulePropertyToDataColumn="//@containsDataFlow.0/@containsDataMappingRule.0" name="temperature" />
+      <containsComputingNode xsi:type="MonitorIoT:Sensor" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.0" id="20" name="TemperatureSensor" description="Ambient temperature sensor." isControlled="//@containsEntity.0/@containsComputingNode.1" hasLinkAPIToIoTDevice="//@containsLink.0" />
+    </containsSubPhysicalEntity>
+    <containsSubPhysicalEntity isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.0" id="21" name="Kitchen" isGrouped="//@containsEntityCategory.0">
+      <hasProperty id="22" isBasedOn="//@containsEntityCategory.0/@hasPropertyTemplate.1" hasRulePropertyToDataColumn="//@containsDataFlow.0/@containsDataMappingRule.1" name="carbonMonoxide" />
+      <hasProperty id="23" isBasedOn="//@containsEntityCategory.0/@hasPropertyTemplate.2" hasRulePropertyToDataColumn="//@containsDataFlow.0/@containsDataMappingRule.2" name="smoke" />
+      <containsComputingNode xsi:type="MonitorIoT:Sensor" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.0" id="24" name="COSmokeSensor" description="Carbon monoxide and smoke sensor." isControlled="//@containsEntity.0/@containsComputingNode.1" hasLinkAPIToIoTDevice="//@containsLink.1" />
+    </containsSubPhysicalEntity>
+    <containsSubPhysicalEntity xsi:type="MonitorIoT:HumanUser" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.1" id="25" name="OlderAdult" description="Older adult who lives alone and wears a smartwatch." isGrouped="//@containsEntityCategory.1" interactsUsing="//@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.0/@containsResource.1">
+      <hasProperty id="26" isBasedOn="//@containsEntityCategory.1/@hasPropertyTemplate.0" isIncluded="//@containsEntity.0/@containsComputingNode.0/@containsResource.2/@containsTopic.0" hasRulePropertyToDataColumn="//@containsDataFlow.1/@containsDataMappingRule.0" name="heartRate" />
+      <containsComputingNode xsi:type="MonitorIoT:IoTGateway" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.1" id="27" name="SmartWatch" controls="//@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.1" gatewayType="SmartWatch">
+        <containsResource xsi:type="MonitorIoT:API" id="28" name="getHeartRate" hasLinkAppToAPI="//@containsLink.7" hasLinkAPIToIoTDevice="//@containsLink.6">
+          <containsReturnVariable ordinal="1" name="heartRate" dataType="Integer" returns="//@containsEntityCategory.1/@hasPropertyTemplate.0" />
+        </containsResource>
+        <containsResource xsi:type="MonitorIoT:Application" id="29" name="healthMonitor" isUsedByUser="//@containsEntity.0/@containsSubPhysicalEntity.2" type="Mobile" hasLinkAppToAPI="//@containsLink.7" hasLinkAppToTopic="//@containsLink.8" />
+        <containsResource xsi:type="MonitorIoT:NetworkInterface" id="30" name="WiFiAdapter" connects="//@containsEntity.3" />
+      </containsComputingNode>
+      <containsComputingNode xsi:type="MonitorIoT:Sensor" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.1" id="31" name="HeartRateSensor" description="Optical heart rate sensor of the smartwatch." isControlled="//@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.0" hasLinkAPIToIoTDevice="//@containsLink.6" />
+    </containsSubPhysicalEntity>
+  </containsEntity>
+  <containsEntity xsi:type="MonitorIoT:CloudNode" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.1" id="32" name="GoogleCloud" description="Cloud node that stores the daily health summary." serviceModel="PaaS" platform="PostgreSQL">
+    <containsResource xsi:type="MonitorIoT:DataBase" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.1" id="33" name="PostgreSQLCloud" uri="postgresql://example_user:example_password@cloud.example.com:5432/cloud" user="example_user" password="example_password" usesProtocol="//@containsEntity.4/@containsProtocol.1">
+      <containsDataTable name="HealthSummaryDaily" persistenceType="Permanent" hasLinkServiceToDatable="//@containsLink.12">
+        <composedOfDataColumn name="averageHeartRate" hasRuleAsDestination="//@containsDataFlow.2/@containsDataMappingRule.0" dataType="Float" />
+        <composedOfDataColumn name="maximumHeartRate" hasRuleAsDestination="//@containsDataFlow.2/@containsDataMappingRule.1" dataType="Integer" />
+        <composedOfDataColumn name="minimumHeartRate" hasRuleAsDestination="//@containsDataFlow.2/@containsDataMappingRule.2" dataType="Integer" />
+        <composedOfDataColumn name="date" dataColumnType="MetaData" dataType="Date" formulaExpression="return new Date().toISOString();" />
+      </containsDataTable>
+    </containsResource>
+    <containsResource xsi:type="MonitorIoT:NetworkInterface" id="34" name="EthernetAdapter" connects="//@containsEntity.4" communicationTechnology="Ethernet" />
+  </containsEntity>
+  <containsEntity xsi:type="MonitorIoT:Network" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.0" id="35" name="Proximity" description="Bluetooth proximity network between the sensors and the gateway." isConnected="//@containsEntity.0/@containsComputingNode.1/@containsResource.3" />
+  <containsEntity xsi:type="MonitorIoT:Network" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.0 //@containsIoTSystem.0/@containsIoTSubSystem.1" id="36" name="LAN" description="Wi-Fi local network of the house." isConnected="//@containsEntity.0/@containsComputingNode.0/@containsResource.3 //@containsEntity.0/@containsComputingNode.1/@containsResource.4 //@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.0/@containsResource.2">
+    <containsProtocol isUsedByMiddleware="//@containsEntity.0/@containsComputingNode.0/@containsResource.1" id="37" name="HTTP" port="3000" />
+    <containsProtocol isUsedByMiddleware="//@containsEntity.0/@containsComputingNode.0/@containsResource.2" id="38" name="MQTT" port="1883" />
+    <containsProtocol isUsedByDataStore="//@containsEntity.0/@containsComputingNode.0/@containsResource.0" id="39" name="PostgreSQL" port="5432" />
+  </containsEntity>
+  <containsEntity xsi:type="MonitorIoT:Network" isPartOf="//@containsIoTSystem.0/@containsIoTSubSystem.1" id="40" name="Internet" description="Connection between the house and the cloud." isConnected="//@containsEntity.0/@containsComputingNode.0/@containsResource.4 //@containsEntity.1/@containsResource.1">
+    <containsProtocol id="41" name="HTTPS" port="443" />
+    <containsProtocol isUsedByDataStore="//@containsEntity.1/@containsResource.0" id="42" name="PostgreSQL" port="5432" />
+  </containsEntity>
+  <containsIoTSystem id="43" name="Emergency" description="Emergency management system for older adults who live alone." domain="Healthcare">
+    <containsIoTSubSystem isComposedOf="//@containsEntity.0 //@containsEntity.0/@containsSubPhysicalEntity.0 //@containsEntity.0/@containsSubPhysicalEntity.1 //@containsEntity.0/@containsComputingNode.0 //@containsEntity.0/@containsComputingNode.1 //@containsEntity.0/@containsSubPhysicalEntity.0/@containsComputingNode.0 //@containsEntity.0/@containsSubPhysicalEntity.1/@containsComputingNode.0 //@containsEntity.0/@containsComputingNode.0/@containsResource.0 //@containsEntity.0/@containsComputingNode.0/@containsResource.1 //@containsEntity.3 //@containsEntity.2" id="44" name="EnvironmentalControl" description="Monitors the temperature, carbon monoxide and smoke of the house." />
+    <containsIoTSubSystem isComposedOf="//@containsEntity.0/@containsSubPhysicalEntity.2 //@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.0 //@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.1 //@containsEntity.0/@containsComputingNode.0 //@containsEntity.0/@containsComputingNode.0/@containsResource.0 //@containsEntity.0/@containsComputingNode.0/@containsResource.1 //@containsEntity.0/@containsComputingNode.0/@containsResource.2 //@containsEntity.1 //@containsEntity.1/@containsResource.0 //@containsEntity.3 //@containsEntity.4" id="45" name="HealthCare" description="Monitors the heart rate of the older adult and summarizes it daily in the cloud." />
+  </containsIoTSystem>
+  <containsDataFlow id="46" description="House environment data collection" isSupported="//@containsLink.0 //@containsLink.1 //@containsLink.2 //@containsLink.3 //@containsLink.4 //@containsLink.5" communicationType="Synchronous" unitOfTime="Minute" flowExecutionTimeInterval="10">
+    <containsDataMappingRule xsi:type="MonitorIoT:PropertyToDataColumn" id="47" relatesColumn="//@containsEntity.0/@containsComputingNode.0/@containsResource.0/@containsDataTable.0/@composedOfDataColumn.0" relatesSpecificProperty="//@containsEntity.0/@containsSubPhysicalEntity.0/@hasProperty.0" />
+    <containsDataMappingRule xsi:type="MonitorIoT:PropertyToDataColumn" id="48" relatesColumn="//@containsEntity.0/@containsComputingNode.0/@containsResource.0/@containsDataTable.0/@composedOfDataColumn.1" relatesSpecificProperty="//@containsEntity.0/@containsSubPhysicalEntity.1/@hasProperty.0" />
+    <containsDataMappingRule xsi:type="MonitorIoT:PropertyToDataColumn" id="49" relatesColumn="//@containsEntity.0/@containsComputingNode.0/@containsResource.0/@containsDataTable.0/@composedOfDataColumn.2" relatesSpecificProperty="//@containsEntity.0/@containsSubPhysicalEntity.1/@hasProperty.1" />
+  </containsDataFlow>
+  <containsDataFlow id="50" description="Heart rate data collection" isSupported="//@containsLink.6 //@containsLink.7 //@containsLink.8 //@containsLink.9 //@containsLink.10" unitOfTime="Minute" flowExecutionTimeInterval="30">
+    <containsDataMappingRule xsi:type="MonitorIoT:PropertyToDataColumn" id="51" relatesColumn="//@containsEntity.0/@containsComputingNode.0/@containsResource.0/@containsDataTable.1/@composedOfDataColumn.0" relatesSpecificProperty="//@containsEntity.0/@containsSubPhysicalEntity.2/@hasProperty.0" />
+  </containsDataFlow>
+  <containsDataFlow id="52" description="Daily health summary aggregation" isSupported="//@containsLink.11 //@containsLink.12" dataFlowType="DataAggregationFlow" communicationType="Synchronous" unitOfTime="Day" flowExecutionTimeInterval="1">
+    <containsDataMappingRule xsi:type="MonitorIoT:DataColumnToDataColumn" id="53" aggregationOperation="Mean" relatesSourceColumn="//@containsEntity.0/@containsComputingNode.0/@containsResource.0/@containsDataTable.1/@composedOfDataColumn.0" relatesDestinationColumn="//@containsEntity.1/@containsResource.0/@containsDataTable.0/@composedOfDataColumn.0" />
+    <containsDataMappingRule xsi:type="MonitorIoT:DataColumnToDataColumn" id="54" aggregationOperation="Maximum" relatesSourceColumn="//@containsEntity.0/@containsComputingNode.0/@containsResource.0/@containsDataTable.1/@composedOfDataColumn.0" relatesDestinationColumn="//@containsEntity.1/@containsResource.0/@containsDataTable.0/@composedOfDataColumn.1" />
+    <containsDataMappingRule xsi:type="MonitorIoT:DataColumnToDataColumn" id="55" aggregationOperation="Minimum" relatesSourceColumn="//@containsEntity.0/@containsComputingNode.0/@containsResource.0/@containsDataTable.1/@composedOfDataColumn.0" relatesDestinationColumn="//@containsEntity.1/@containsResource.0/@containsDataTable.0/@composedOfDataColumn.2" />
+  </containsDataFlow>
+  <containsLink xsi:type="MonitorIoT:LinkAPIToIoTDevice" supports="//@containsDataFlow.0" id="56" linksIoTDevice="//@containsEntity.0/@containsSubPhysicalEntity.0/@containsComputingNode.0" linksAPI="//@containsEntity.0/@containsComputingNode.1/@containsResource.0" />
+  <containsLink xsi:type="MonitorIoT:LinkAPIToIoTDevice" supports="//@containsDataFlow.0" id="57" linksIoTDevice="//@containsEntity.0/@containsSubPhysicalEntity.1/@containsComputingNode.0" linksAPI="//@containsEntity.0/@containsComputingNode.1/@containsResource.1" />
+  <containsLink xsi:type="MonitorIoT:LinkAppToAPI" supports="//@containsDataFlow.0" previousLink="//@containsLink.0" id="58" linksAPI="//@containsEntity.0/@containsComputingNode.1/@containsResource.0" linksApp="//@containsEntity.0/@containsComputingNode.1/@containsResource.2" />
+  <containsLink xsi:type="MonitorIoT:LinkAppToAPI" supports="//@containsDataFlow.0" previousLink="//@containsLink.1" id="59" linksAPI="//@containsEntity.0/@containsComputingNode.1/@containsResource.1" linksApp="//@containsEntity.0/@containsComputingNode.1/@containsResource.2" />
+  <containsLink xsi:type="MonitorIoT:LinkAppToService" supports="//@containsDataFlow.0" previousLink="//@containsLink.2 //@containsLink.3" id="60" linksApp="//@containsEntity.0/@containsComputingNode.1/@containsResource.2" linksService="//@containsEntity.0/@containsComputingNode.0/@containsResource.1/@containsService.0" />
+  <containsLink xsi:type="MonitorIoT:LinkServiceToDataTable" supports="//@containsDataFlow.0" previousLink="//@containsLink.4" id="61" linkService="//@containsEntity.0/@containsComputingNode.0/@containsResource.1/@containsService.0" linksDataTable="//@containsEntity.0/@containsComputingNode.0/@containsResource.0/@containsDataTable.0" type="Insert" />
+  <containsLink xsi:type="MonitorIoT:LinkAPIToIoTDevice" supports="//@containsDataFlow.1" id="62" linksIoTDevice="//@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.1" linksAPI="//@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.0/@containsResource.0" />
+  <containsLink xsi:type="MonitorIoT:LinkAppToAPI" supports="//@containsDataFlow.1" previousLink="//@containsLink.6" id="63" linksAPI="//@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.0/@containsResource.0" linksApp="//@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.0/@containsResource.1" />
+  <containsLink xsi:type="MonitorIoT:LinkAppToTopic" supports="//@containsDataFlow.1" previousLink="//@containsLink.7" id="64" linksTopic="//@containsEntity.0/@containsComputingNode.0/@containsResource.2/@containsTopic.0" linksApplication="//@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.0/@containsResource.1" />
+  <containsLink xsi:type="MonitorIoT:LinkServiceToTopic" supports="//@containsDataFlow.1" previousLink="//@containsLink.8" id="65" linksService="//@containsEntity.0/@containsComputingNode.0/@containsResource.1/@containsService.1" linksTopic="//@containsEntity.0/@containsComputingNode.0/@containsResource.2/@containsTopic.0" type="Pull" />
+  <containsLink xsi:type="MonitorIoT:LinkServiceToDataTable" supports="//@containsDataFlow.1" previousLink="//@containsLink.9" id="66" linkService="//@containsEntity.0/@containsComputingNode.0/@containsResource.1/@containsService.1" linksDataTable="//@containsEntity.0/@containsComputingNode.0/@containsResource.0/@containsDataTable.1" type="Insert" />
+  <containsLink xsi:type="MonitorIoT:LinkServiceToDataTable" supports="//@containsDataFlow.2" id="67" linkService="//@containsEntity.0/@containsComputingNode.0/@containsResource.1/@containsService.2" linksDataTable="//@containsEntity.0/@containsComputingNode.0/@containsResource.0/@containsDataTable.1" />
+  <containsLink xsi:type="MonitorIoT:LinkServiceToDataTable" supports="//@containsDataFlow.2" previousLink="//@containsLink.11" id="68" linkService="//@containsEntity.0/@containsComputingNode.0/@containsResource.1/@containsService.2" linksDataTable="//@containsEntity.1/@containsResource.0/@containsDataTable.0" type="Insert" />
+  <containsEntityCategory id="69" name="Room" description="Rooms of a house whose environment is monitored." groups="//@containsEntity.0/@containsSubPhysicalEntity.0 //@containsEntity.0/@containsSubPhysicalEntity.1">
+    <hasPropertyTemplate id="70" name="temperature" definition="Ambient temperature of the room." isParticularized="//@containsEntity.0/@containsSubPhysicalEntity.0/@hasProperty.0" isReturned="//@containsEntity.0/@containsComputingNode.1/@containsResource.0/@containsReturnVariable.0" isReceived="//@containsEntity.0/@containsComputingNode.0/@containsResource.1/@containsService.0/@containsParameter.0" isMeasured="//@containsMeasurementUnit.0" propertyType="Telemetry" dataType="Float" />
+    <hasPropertyTemplate id="71" name="carbonMonoxide" definition="Carbon monoxide concentration in the air." isParticularized="//@containsEntity.0/@containsSubPhysicalEntity.1/@hasProperty.0" isReturned="//@containsEntity.0/@containsComputingNode.1/@containsResource.1/@containsReturnVariable.0" isReceived="//@containsEntity.0/@containsComputingNode.0/@containsResource.1/@containsService.0/@containsParameter.1" isMeasured="//@containsMeasurementUnit.1" propertyType="Telemetry" dataType="Float" />
+    <hasPropertyTemplate id="72" name="smoke" definition="Smoke concentration in the air." isParticularized="//@containsEntity.0/@containsSubPhysicalEntity.1/@hasProperty.1" isReturned="//@containsEntity.0/@containsComputingNode.1/@containsResource.1/@containsReturnVariable.1" isReceived="//@containsEntity.0/@containsComputingNode.0/@containsResource.1/@containsService.0/@containsParameter.2" isMeasured="//@containsMeasurementUnit.1" propertyType="Telemetry" dataType="Float" />
+  </containsEntityCategory>
+  <containsEntityCategory id="73" name="Person" description="People whose vital signs are monitored." groups="//@containsEntity.0/@containsSubPhysicalEntity.2">
+    <hasPropertyTemplate id="74" name="heartRate" definition="Heart rate of the person." isParticularized="//@containsEntity.0/@containsSubPhysicalEntity.2/@hasProperty.0" isReturned="//@containsEntity.0/@containsSubPhysicalEntity.2/@containsComputingNode.0/@containsResource.0/@containsReturnVariable.0" isReceived="//@containsEntity.0/@containsComputingNode.0/@containsResource.1/@containsService.1/@containsParameter.0" isMeasured="//@containsMeasurementUnit.2" propertyType="Telemetry" dataType="Integer" />
+  </containsEntityCategory>
+  <containsMeasurementUnit id="75" name="DegreeCelsius" measures="//@containsEntityCategory.0/@hasPropertyTemplate.0" />
+  <containsMeasurementUnit id="76" name="PartsPerMillion" measures="//@containsEntityCategory.0/@hasPropertyTemplate.1 //@containsEntityCategory.0/@hasPropertyTemplate.2" />
+  <containsMeasurementUnit id="77" name="BeatsPerMinute" measures="//@containsEntityCategory.1/@hasPropertyTemplate.0" />
+</MonitorIoT:MonitoringArchitectureModel>
+

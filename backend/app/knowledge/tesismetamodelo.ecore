@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="MonitorIoT" nsURI="http://www.uazuay.edu.ec/MonitorIoT" nsPrefix="MonitorIoT">
+  <eClassifiers xsi:type="ecore:EClass" name="IoTSystem">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsIoTSubSystem" upperBound="-1"
+        eType="#//IoTSystem" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isComposedOf" upperBound="-1"
+        eType="#//Entity" eOpposite="#//Entity/isPartOf"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="domain" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IoTDevice" abstract="true" eSuperTypes="#//EdgeNode">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isControlled" eType="#//IoTGateway"
+        eOpposite="#//IoTGateway/controls"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkAPIToIoTDevice"
+        upperBound="-1" eType="#//LinkAPIToIoTDevice" eOpposite="#//LinkAPIToIoTDevice/linksIoTDevice"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Sensor" eSuperTypes="#//IoTDevice">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sensorType" eType="#//SensorType"
+        defaultValueLiteral="Infrared"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Actuator" eSuperTypes="#//IoTDevice">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="actuatorType" eType="#//ActuatorType"
+        defaultValueLiteral="Electrical"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PhysicalEntity" eSuperTypes="#//Entity">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsComputingNode"
+        upperBound="-1" eType="#//ComputeNode" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsSubPhysicalEntity"
+        upperBound="-1" eType="#//PhysicalEntity" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CloudNode" eSuperTypes="#//ComputeNode">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="serviceModel" eType="#//ServiceModel"
+        defaultValueLiteral="SaaS"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="deploymentModel" eType="#//DeploymentModel"
+        defaultValueLiteral="Public"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="platform" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DataBase" eSuperTypes="#//Resource">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="uri" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsDataTable" upperBound="-1"
+        eType="#//DataTable" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="user" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="password" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="usesProtocol" eType="#//Protocol"
+        eOpposite="#//Protocol/isUsedByDataStore"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Service" eSuperTypes="#//Resource">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="endPoint" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="method" eType="#//Method"
+        defaultValueLiteral="GET"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="returnDataFormatType" eType="#//DataFormatType"
+        defaultValueLiteral="JSON"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsHeader" upperBound="-1"
+        eType="#//Header" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsParameter" upperBound="-1"
+        eType="#//Parameter" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isConsumedByNonHumanUser"
+        upperBound="-1" eType="#//NonHumanUser" eOpposite="#//NonHumanUser/consumes"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkAppToService" upperBound="-1"
+        eType="#//LinkAppToService" eOpposite="#//LinkAppToService/linksService"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkServiceToDataTable"
+        upperBound="-1" eType="#//LinkServiceToDataTable" eOpposite="#//LinkServiceToDataTable/linkService"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsReturnVariable"
+        upperBound="-1" eType="#//ReturnVariable" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkAsSource" upperBound="-1"
+        eType="#//LinkServiceToService" eOpposite="#//LinkServiceToService/linksSourceService"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkAsDestination" upperBound="-1"
+        eType="#//LinkServiceToService" eOpposite="#//LinkServiceToService/linksDestinationService"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkServiceToAPI" upperBound="-1"
+        eType="#//LinkServiceToAPI" eOpposite="#//LinkServiceToAPI/linksService"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkServiceToTopic"
+        upperBound="-1" eType="#//LinkServiceToTopic" eOpposite="#//LinkServiceToTopic/linksService"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Network" eSuperTypes="#//Entity">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isConnected" upperBound="-1"
+        eType="#//NetworkInterface" eOpposite="#//NetworkInterface/connects"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsProtocol" upperBound="-1"
+        eType="#//Protocol" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="CommunicationTechnology">
+    <eLiterals name="Wifi"/>
+    <eLiterals name="Bluetooth" value="1"/>
+    <eLiterals name="ZigBee" value="2"/>
+    <eLiterals name="Ethernet" value="3"/>
+    <eLiterals name="WiMax" value="4"/>
+    <eLiterals name="RFID" value="5"/>
+    <eLiterals name="OpticalFiber" value="6"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="SensorType">
+    <eLiterals name="Infrared"/>
+    <eLiterals name="Proximity" value="1"/>
+    <eLiterals name="Pressure" value="2"/>
+    <eLiterals name="Ultrasonic" value="3"/>
+    <eLiterals name="Touch" value="5"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Method">
+    <eLiterals name="GET"/>
+    <eLiterals name="POST" value="1"/>
+    <eLiterals name="DELETE" value="2"/>
+    <eLiterals name="OPTIONS" value="3"/>
+    <eLiterals name="PUT" value="4"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DataFormatType">
+    <eLiterals name="JSON"/>
+    <eLiterals name="XML" value="1"/>
+    <eLiterals name="RDF" value="4"/>
+    <eLiterals name="Binario" value="5"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ComputeNode" abstract="true" eSuperTypes="#//DigitalEntity">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsResource" upperBound="-1"
+        eType="#//Resource" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MonitoringArchitectureModel">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsEntity" upperBound="-1"
+        eType="#//Entity" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsIoTSystem" upperBound="-1"
+        eType="#//IoTSystem" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsDataFlow" upperBound="-1"
+        eType="#//DataFlow" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsLink" upperBound="-1"
+        eType="#//Link" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsEntityCategory"
+        upperBound="-1" eType="#//EntityCategory" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsMeasurementUnit"
+        upperBound="-1" eType="#//MeasurementUnit" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsProtocol" upperBound="-1"
+        eType="#//Protocol" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="author" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsPropertyTemplate"
+        upperBound="-1" eType="#//PropertyTemplate" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Topic">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="incluyes" upperBound="-1"
+        eType="#//Property" eOpposite="#//Property/isIncluded"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataFormatType" eType="#//DataFormatType"
+        defaultValueLiteral="JSON"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="topicType" eType="#//TopicType"
+        defaultValueLiteral="Atomic"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkServiceToTopic"
+        upperBound="-1" eType="#//LinkServiceToTopic" eOpposite="#//LinkServiceToTopic/linksTopic"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkAppToTopic" upperBound="-1"
+        eType="#//LinkAppToTopic" eOpposite="#//LinkAppToTopic/linksTopic"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="TopicType">
+    <eLiterals name="Atomic"/>
+    <eLiterals name="Composed" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PropertyTemplate">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="definition" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isParticularized" upperBound="-1"
+        eType="#//Property" eOpposite="#//Property/isBasedOn"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isReturned" upperBound="-1"
+        eType="#//ReturnVariable" eOpposite="#//ReturnVariable/returns"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isReceived" upperBound="-1"
+        eType="#//Parameter" eOpposite="#//Parameter/receives"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isMeasured" eType="#//MeasurementUnit"
+        eOpposite="#//MeasurementUnit/measures"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="identifier" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="propertyType" eType="#//PropertyType"
+        defaultValueLiteral="Metadata"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataType" eType="#//DataType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="assignedAtDesignTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="false"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DataFlow">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isSupported" upperBound="-1"
+        eType="#//Link" eOpposite="#//Link/supports"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsDataMappingRule"
+        upperBound="-1" eType="#//DataMappingRule" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataFlowType" eType="#//DataFlowType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="communicationType" eType="#//CommunicationType"
+        defaultValueLiteral="Asynchronous"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="unitOfTime" eType="#//UnitOfTime"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="flowExecutionTimeInterval"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="flowExecutionTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DataTable">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="composedOfDataColumn" lowerBound="1"
+        upperBound="-1" eType="#//DataColumn" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="persistenceType" eType="#//PersistenceType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkServiceToDatable"
+        upperBound="-1" eType="#//LinkServiceToDataTable" eOpposite="#//LinkServiceToDataTable/linksDataTable"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="unitOfTime" eType="#//UnitOfTime"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="persistenceTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DataColumn">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsDataInstance" upperBound="-1"
+        eType="#//DataInstance" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasRulePropertyToDataColumn"
+        upperBound="-1" eType="#//PropertyToDataColumn" eOpposite="#//PropertyToDataColumn/relatesColumn"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasRuleAsSource" upperBound="-1"
+        eType="#//DataColumnToDataColumn" eOpposite="#//DataColumnToDataColumn/relatesSourceColumn"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasRuleAsDestination" upperBound="-1"
+        eType="#//DataColumnToDataColumn" eOpposite="#//DataColumnToDataColumn/relatesDestinationColumn"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataColumnType" eType="#//DataColumnType"
+        defaultValueLiteral="Data"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataType" eType="#//DataType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="formulaExpression" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Entity" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isPartOf" upperBound="-1"
+        eType="#//IoTSystem" eOpposite="#//IoTSystem/isComposedOf"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isGrouped" eType="#//EntityCategory"
+        eOpposite="#//EntityCategory/groups"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasProperty" upperBound="-1"
+        eType="#//Property" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ActuatorType">
+    <eLiterals name="Electrical"/>
+    <eLiterals name="Mechanical" value="1"/>
+    <eLiterals name="Hydraulic" value="2"/>
+    <eLiterals name="Thermal" value="3"/>
+    <eLiterals name="Pneumatic" value="4" literal="Pneumatic"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ServiceModel">
+    <eLiterals name="SaaS"/>
+    <eLiterals name="PaaS" value="1"/>
+    <eLiterals name="IaaS" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DeploymentModel">
+    <eLiterals name="Public" literal="Public"/>
+    <eLiterals name="Private" value="1"/>
+    <eLiterals name="Community" value="2"/>
+    <eLiterals name="Hibrid" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="FogNode" eSuperTypes="#//ComputeNode">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="serviceModel" eType="#//ServiceModel"
+        defaultValueLiteral="SaaS"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="deploymentModel" eType="#//DeploymentModel"
+        defaultValueLiteral="Public"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="platform" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IoTUser" abstract="true" eSuperTypes="#//PhysicalEntity"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Application" eSuperTypes="#//Resource">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isUsedByUser" upperBound="-1"
+        eType="#//HumanUser" eOpposite="#//HumanUser/interactsUsing"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="#//ApplicationType"
+        defaultValueLiteral="Web"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="path" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkAppToService" upperBound="-1"
+        eType="#//LinkAppToService" eOpposite="#//LinkAppToService/linksApp"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkAppToAPI" upperBound="-1"
+        eType="#//LinkAppToAPI" eOpposite="#//LinkAppToAPI/linksApp"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkAppToTopic" upperBound="-1"
+        eType="#//LinkAppToTopic" eOpposite="#//LinkAppToTopic/linksApplication"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EdgeNode" abstract="true" eSuperTypes="#//ComputeNode"/>
+  <eClassifiers xsi:type="ecore:EClass" name="IoTGateway" eSuperTypes="#//EdgeNode">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="controls" upperBound="-1"
+        eType="#//IoTDevice" eOpposite="#//IoTDevice/isControlled"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="gatewayType" eType="#//GatewayType"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Broker" eSuperTypes="#//Middleware">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsTopic" upperBound="-1"
+        eType="#//Topic" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NetworkInterface" eSuperTypes="#//Resource">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="connects" upperBound="-1"
+        eType="#//Network" eOpposite="#//Network/isConnected"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="macAddress" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="networkAddress" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="communicationTechnology"
+        eType="#//CommunicationTechnology" defaultValueLiteral="Wifi"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Protocol">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isUsedByMiddleware" upperBound="-1"
+        eType="#//Middleware" eOpposite="#//Middleware/usesProtocol"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isUsedByDataStore" upperBound="-1"
+        eType="#//DataBase" eOpposite="#//DataBase/usesProtocol"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="layer" eType="#//Layer"
+        defaultValueLiteral="Application"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="port" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Layer">
+    <eLiterals name="Application"/>
+    <eLiterals name="Presentation" value="1"/>
+    <eLiterals name="Session" value="2"/>
+    <eLiterals name="Transport" value="3"/>
+    <eLiterals name="Network" value="4"/>
+    <eLiterals name="DataLink" value="5"/>
+    <eLiterals name="Physical" value="6" literal="Physical"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ConfigurationFile" eSuperTypes="#//Resource">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="path" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataFormatType" eType="#//DataFormatType"
+        defaultValueLiteral="JSON"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ApplicationType">
+    <eLiterals name="Web"/>
+    <eLiterals name="Mobile" value="1"/>
+    <eLiterals name="Embedded" value="2"/>
+    <eLiterals name="Desktop" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="API" eSuperTypes="#//Resource">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="instructions" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="returnDataFormatType" eType="#//DataFormatType"
+        defaultValueLiteral="JSON"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsParameter" upperBound="-1"
+        eType="#//Parameter" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="path" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkAppToAPI" upperBound="-1"
+        eType="#//LinkAppToAPI" eOpposite="#//LinkAppToAPI/linksAPI"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkAPIToIoTDevice"
+        upperBound="-1" eType="#//LinkAPIToIoTDevice" eOpposite="#//LinkAPIToIoTDevice/linksAPI"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsReturnVariable"
+        upperBound="-1" eType="#//ReturnVariable" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasLinkServiceToAPI" upperBound="-1"
+        eType="#//LinkServiceToAPI" eOpposite="#//LinkServiceToAPI/linksAPI"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DigitalEntity" abstract="true" eSuperTypes="#//Entity"/>
+  <eClassifiers xsi:type="ecore:EEnum" name="GatewayType">
+    <eLiterals name="Server"/>
+    <eLiterals name="VirtualMachine" value="1"/>
+    <eLiterals name="Microcontroller" value="2"/>
+    <eLiterals name="PC" value="6"/>
+    <eLiterals name="Tablet" value="7"/>
+    <eLiterals name="Smartphone" value="3"/>
+    <eLiterals name="Router" value="4"/>
+    <eLiterals name="Switch" value="5"/>
+    <eLiterals name="SmartWatch" value="8"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PropertyType">
+    <eLiterals name="Metadata"/>
+    <eLiterals name="Telemetry" value="1"/>
+    <eLiterals name="State" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Resource" eSuperTypes="#//DigitalEntity"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Middleware" eSuperTypes="#//Resource">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="usesProtocol" upperBound="-1"
+        eType="#//Protocol" eOpposite="#//Protocol/isUsedByMiddleware"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containsService" upperBound="-1"
+        eType="#//Service" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Parameter">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ordinal" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataType" eType="#//DataType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="receives" eType="#//PropertyTemplate"
+        eOpposite="#//PropertyTemplate/isReceived"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Header">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="HumanUser" eSuperTypes="#//IoTUser">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="interactsUsing" eType="#//Application"
+        eOpposite="#//Application/isUsedByUser"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NonHumanUser" eSuperTypes="#//IoTUser">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="consumes" upperBound="-1"
+        eType="#//Service" eOpposite="#//Service/isConsumedByNonHumanUser"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DataInstance">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PersistenceType">
+    <eLiterals name="Temporary"/>
+    <eLiterals name="Permanent" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="AggregationOperation">
+    <eLiterals name="Count"/>
+    <eLiterals name="Sum" value="1"/>
+    <eLiterals name="Mean" value="6"/>
+    <eLiterals name="Minimum" value="3"/>
+    <eLiterals name="Maximum" value="2"/>
+    <eLiterals name="StandardDeviation" value="4"/>
+    <eLiterals name="Variance" value="5"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="CommunicationType">
+    <eLiterals name="Asynchronous" value="1"/>
+    <eLiterals name="Synchronous"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Tag" eSuperTypes="#//IoTDevice"/>
+  <eClassifiers xsi:type="ecore:EClass" name="LinkAppToService" eSuperTypes="#//Link">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksApp" eType="#//Application"
+        eOpposite="#//Application/hasLinkAppToService"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksService" eType="#//Service"
+        eOpposite="#//Service/hasLinkAppToService"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="LinkAppToAPI" eSuperTypes="#//Link">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksAPI" eType="#//API"
+        eOpposite="#//API/hasLinkAppToAPI"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksApp" eType="#//Application"
+        eOpposite="#//Application/hasLinkAppToAPI"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="LinkServiceToDataTable" eSuperTypes="#//Link">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linkService" eType="#//Service"
+        eOpposite="#//Service/hasLinkServiceToDataTable"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksDataTable" eType="#//DataTable"
+        eOpposite="#//DataTable/hasLinkServiceToDatable"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="#//DataTableLinkType"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Link" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="supports" upperBound="-1"
+        eType="#//DataFlow" eOpposite="#//DataFlow/isSupported"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="previousLink" upperBound="-1"
+        eType="#//Link"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="BrokerLinkType">
+    <eLiterals name="Push"/>
+    <eLiterals name="Pull" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="LinkAPIToIoTDevice" eSuperTypes="#//Link">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksIoTDevice" eType="#//IoTDevice"
+        eOpposite="#//IoTDevice/hasLinkAPIToIoTDevice"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksAPI" eType="#//API"
+        eOpposite="#//API/hasLinkAPIToIoTDevice"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DataMappingRule" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PropertyToDataColumn" eSuperTypes="#//DataMappingRule">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="relatesColumn" eType="#//DataColumn"
+        eOpposite="#//DataColumn/hasRulePropertyToDataColumn"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="relatesSpecificProperty"
+        eType="#//Property" eOpposite="#//Property/hasRulePropertyToDataColumn"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DataColumnToDataColumn" eSuperTypes="#//DataMappingRule">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="aggregationOperation" eType="#//AggregationOperation"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="relatesSourceColumn" eType="#//DataColumn"
+        eOpposite="#//DataColumn/hasRuleAsSource"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="relatesDestinationColumn"
+        eType="#//DataColumn" eOpposite="#//DataColumn/hasRuleAsDestination"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="where" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="groupBy" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="having" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ReturnVariable">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ordinal" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataType" eType="#//DataType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="returns" eType="#//PropertyTemplate"
+        eOpposite="#//PropertyTemplate/isReturned"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UnitOfTime">
+    <eLiterals name="Millisecond"/>
+    <eLiterals name="Second" value="1"/>
+    <eLiterals name="Minute" value="2"/>
+    <eLiterals name="Hour" value="7"/>
+    <eLiterals name="Day" value="3"/>
+    <eLiterals name="Week" value="7"/>
+    <eLiterals name="Month" value="4"/>
+    <eLiterals name="Year" value="5"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DataFlowType">
+    <eLiterals name="DataCollectionFlow"/>
+    <eLiterals name="DataAggregationFlow" value="1"/>
+    <eLiterals name="ActuatingFlow" value="2"/>
+    <eLiterals name="ReportGenerationFlow" value="4"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="LinkServiceToService" eSuperTypes="#//Link">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksSourceService" eType="#//Service"
+        eOpposite="#//Service/hasLinkAsSource"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksDestinationService"
+        eType="#//Service" eOpposite="#//Service/hasLinkAsDestination"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DataType">
+    <eLiterals name="Byte" value="7"/>
+    <eLiterals name="Integer"/>
+    <eLiterals name="Long" value="6"/>
+    <eLiterals name="Float" value="5"/>
+    <eLiterals name="Double" value="1"/>
+    <eLiterals name="String" value="2"/>
+    <eLiterals name="Date" value="4"/>
+    <eLiterals name="Boolean" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DataTableLinkType">
+    <eLiterals name="Select"/>
+    <eLiterals name="Insert" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EntityCategory">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasPropertyTemplate" upperBound="-1"
+        eType="#//PropertyTemplate" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="groups" upperBound="-1"
+        eType="#//Entity" eOpposite="#//Entity/isGrouped"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Property">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isBasedOn" lowerBound="1"
+        eType="#//PropertyTemplate" eOpposite="#//PropertyTemplate/isParticularized"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isIncluded" eType="#//Topic"
+        eOpposite="#//Topic/incluyes"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="hasRulePropertyToDataColumn"
+        upperBound="-1" eType="#//PropertyToDataColumn" eOpposite="#//PropertyToDataColumn/relatesSpecificProperty"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DataColumnType">
+    <eLiterals name="Data"/>
+    <eLiterals name="MetaData" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MeasurementUnit">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="measures" upperBound="-1"
+        eType="#//PropertyTemplate" eOpposite="#//PropertyTemplate/isMeasured"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="LinkServiceToAPI" eSuperTypes="#//Link">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksAPI" eType="#//API"
+        eOpposite="#//API/hasLinkServiceToAPI"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksService" eType="#//Service"
+        eOpposite="#//Service/hasLinkServiceToAPI"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="LinkServiceToTopic" eSuperTypes="#//Link">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksService" lowerBound="1"
+        eType="#//Service" eOpposite="#//Service/hasLinkServiceToTopic"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksTopic" lowerBound="1"
+        eType="#//Topic" eOpposite="#//Topic/hasLinkServiceToTopic"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="#//TopicLinkType"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="LinkAppToTopic" eSuperTypes="#//Link">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="#//TopicLinkType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksTopic" lowerBound="1"
+        eType="#//Topic" eOpposite="#//Topic/hasLinkAppToTopic"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linksApplication" lowerBound="1"
+        eType="#//Application" eOpposite="#//Application/hasLinkAppToTopic"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="TopicLinkType">
+    <eLiterals name="Push"/>
+    <eLiterals name="Pull" value="1"/>
+  </eClassifiers>
+</ecore:EPackage>
